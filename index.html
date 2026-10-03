@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLPT N5 Kanji & Vocabulary Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+        /* Soundwave Pulse Animation */
+        @keyframes soundwave {
+            0%, 100% { height: 6px; }
+            50% { height: 18px; }
+        }
+        .animate-soundwave {
+            display: inline-block;
+            width: 3px;
+            background-color: currentColor;
+            border-radius: 3px;
+            animation: soundwave 1s infinite ease-in-out;
+        }
+        .animate-soundwave:nth-child(2) { animation-delay: 0.2s; }
+        .animate-soundwave:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Card Flip Effect */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500 selection:text-white" onclick="unlockAudioContext()">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-3 sm:px-6 py-3 shadow-xl">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <!-- App Logo & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-rose-500 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-indigo-500/20">
+                    語
+                </div>
+                <div>
+                    <h1 class="text-sm sm:text-lg font-black tracking-wide text-white flex items-center gap-2">
+                        <span>JLPT N5 GAME</span>
+                        <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">マスター</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400 hidden sm:block" id="appSubtitle">Aplikasi Game Pembelajaran Interaktif</p>
+                </div>
+            </div>
+
+            <!-- Utility Buttons (Right Side) -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- Audio BGM Toggle -->
+                <button id="bgmBtn" onclick="toggleBGM()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center gap-1.5 text-xs font-semibold" title="BGM Music">
+                    <i id="bgmIcon" class="fa-solid fa-music text-slate-400"></i>
+                    <span class="hidden md:inline" id="bgmText">BGM</span>
+                </button>
+
+                <!-- Audio SFX Toggle -->
+                <button id="sfxBtn" onclick="toggleSFX()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center gap-1.5 text-xs font-semibold" title="Sound Effects">
+                    <i id="sfxIcon" class="fa-solid fa-volume-high text-indigo-400"></i>
+                    <span class="hidden md:inline" id="sfxText">SFX</span>
+                </button>
+
+                <!-- Auto Speech Toggle -->
+                <button id="autoSpeechBtn" onclick="toggleAutoSpeech()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center gap-1.5 text-xs font-semibold" title="Auto Suara">
+                    <i id="autoSpeechIcon" class="fa-solid fa-bullhorn text-slate-400"></i>
+                    <span class="hidden lg:inline" id="autoSpeechText">Auto Suara</span>
+                </button>
+
+                <!-- Language Toggle -->
+                <button onclick="toggleLanguage()" class="px-2.5 py-2 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 border border-indigo-400/40 text-white transition flex items-center gap-1.5 text-xs font-bold shadow-md">
+                    <i class="fa-solid fa-globe text-indigo-200"></i>
+                    <span id="langLabel">ID / JP</span>
+                </button>
+
+                <!-- Developer Button -->
+                <button onclick="openDevModal()" class="px-2.5 py-2 rounded-xl bg-rose-600/80 hover:bg-rose-600 border border-rose-400/40 text-white transition flex items-center gap-1.5 text-xs font-bold shadow-md" title="Pengembang">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span class="hidden sm:inline" id="navDevText">Pengembang</span>
+                </button>
+
+                <!-- Fullscreen Toggle (Top Right Corner) -->
+                <button onclick="toggleFullScreen()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-xs font-semibold" title="Full Screen">
+                    <i id="fsIcon" class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-3 sm:p-6 flex flex-col justify-center">
+        
+        <!-- Adaptive Grid (Desktop side-by-side, Mobile portrait vertical stack) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            
+            <!-- GAMEPLAY / SIMULATION AREA -->
+            <section class="lg:col-span-8 w-full flex flex-col gap-4">
+                
+                <!-- Game Mode Selector Bar -->
+                <div class="bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl flex gap-1.5 shadow-inner">
+                    <button onclick="switchMode('quiz')" id="tabQuiz" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-md">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <span class="mode-text-quiz">Kuis Pilihan</span>
+                    </button>
+                    <button onclick="switchMode('cards')" id="tabCards" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-clone"></i>
+                        <span class="mode-text-cards">Kartu Belajar</span>
+                    </button>
+                    <button onclick="switchMode('vocab')" id="tabVocab" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-book"></i>
+                        <span class="mode-text-vocab">Daftar Materi</span>
+                    </button>
+                </div>
+
+                <!-- DYNAMIC DISPLAY BOARD CARD -->
+                <div id="simulationCard" class="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-8 min-h-[380px] sm:min-h-[440px] flex flex-col justify-between shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                    
+                    <!-- Background Ambient Light -->
+                    <div class="absolute -top-16 -right-16 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <!-- MODE 1: MULTIPLE CHOICE QUIZ DISPLAY -->
+                    <div id="quizView" class="flex flex-col justify-between flex-grow gap-4">
+                        <!-- Top Quiz Header -->
+                        <div class="flex items-center justify-between text-xs sm:text-sm font-medium text-slate-400 border-b border-slate-800 pb-3">
+                            <span id="quizQuestionCount">Soal 1/43</span>
+                            <div class="flex items-center gap-1.5 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
+                                <i class="fa-solid fa-fire text-amber-400"></i>
+                                <span>Streak: <strong id="quizStreak" class="text-amber-400">0</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Question Word & Pronunciation Audio Button -->
+                        <div class="my-auto py-4 text-center flex flex-col items-center justify-center relative">
+                            <span class="text-xs uppercase tracking-widest text-indigo-400 font-bold mb-2" id="quizHintText">Pilih Terjemahan yang Tepat</span>
+                            
+                            <div class="flex items-center justify-center gap-3 my-2">
+                                <h2 id="quizQuestionText" class="text-3xl sm:text-5xl font-black text-white tracking-wide font-jp flex items-center justify-center">
+                                    わたし
+                                </h2>
+                                
+                                <!-- Speaker Button to Listen Pronunciation -->
+                                <button id="quizSpeakerBtn" onclick="speakCurrentQuestion()" class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600/90 hover:bg-indigo-500 text-white flex items-center justify-center text-lg sm:text-2xl shadow-lg shadow-indigo-600/30 active:scale-90 transition border border-indigo-400/40 shrink-0" title="Dengarkan Pelafalan Suara">
+                                    <i class="fa-solid fa-volume-high" id="quizSpeakerIcon"></i>
+                                    <div id="quizWaveAnim" class="hidden items-center gap-0.5 ml-1">
+                                        <span class="animate-soundwave"></span>
+                                        <span class="animate-soundwave"></span>
+                                        <span class="animate-soundwave"></span>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <p id="quizSubDetail" class="text-sm text-slate-400 h-5 font-jp font-semibold"></p>
+                        </div>
+
+                        <!-- Options Grid (Large Touch-friendly Buttons on Mobile) -->
+                        <div id="quizOptionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                            <!-- Options generated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- MODE 2: FLASHCARDS DISPLAY -->
+                    <div id="cardsView" class="hidden flex-col justify-between flex-grow gap-4">
+                        <div class="flex items-center justify-between text-xs sm:text-sm text-slate-400 border-b border-slate-800 pb-3">
+                            <span id="cardCounterText">Kartu 1 / 43</span>
+                            <span id="cardHintText">Klik kartu untuk membalik</span>
+                        </div>
+
+                        <!-- Flashcard Interactive Container -->
+                        <div id="flashcardElement" onclick="flipCard()" class="my-auto cursor-pointer perspective-1000 w-full max-w-sm mx-auto h-52 sm:h-64">
+                            <div id="cardInner" class="relative w-full h-full duration-500 transform-style-3d transition-transform">
+                                <!-- Front Face (Kanji/Japanese) -->
+                                <div class="absolute w-full h-full rounded-2xl bg-gradient-to-br from-indigo-900/80 via-slate-900 to-slate-900 border-2 border-indigo-500/40 p-6 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
+                                    <span class="text-[10px] sm:text-xs text-indigo-300 font-bold uppercase tracking-widest mb-2">Jepang / 漢字</span>
+                                    <h3 id="cardFrontText" class="text-3xl sm:text-5xl font-black text-white font-jp my-1">わたし</h3>
+                                    <p id="cardFrontFurigana" class="text-sm text-slate-300 font-jp mt-1"></p>
+                                    <span class="mt-4 text-[11px] text-indigo-400 flex items-center gap-1 font-semibold"><i class="fa-solid fa-rotate"></i> <span class="card-click-flip">Sentuh untuk membalik</span></span>
+                                </div>
+                                <!-- Back Face (Indonesian Meaning) -->
+                                <div class="absolute w-full h-full rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 border-2 border-rose-500/40 p-6 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
+                                    <span class="text-[10px] sm:text-xs text-rose-400 font-bold uppercase tracking-widest mb-2">Arti / 意味</span>
+                                    <h3 id="cardBackText" class="text-2xl sm:text-3xl font-extrabold text-amber-300 my-2">Saya</h3>
+                                    <p id="cardBackExtra" class="text-xs text-slate-400 mt-1 font-mono">Kosakata JLPT N5</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Navigation & Audio Controls -->
+                        <div class="flex items-center justify-between gap-3 pt-2">
+                            <button onclick="prevCard()" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-700 shadow-md">
+                                <i class="fa-solid fa-arrow-left"></i> <span id="btnPrevText">Sebelumnya</span>
+                            </button>
+                            <button onclick="speakCurrentCard()" class="py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-indigo-400/50 shadow-lg shadow-indigo-600/30" title="Dengarkan Pelafalan">
+                                <i class="fa-solid fa-volume-high text-lg"></i>
+                            </button>
+                            <button onclick="nextCard()" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-700 shadow-md">
+                                <span id="btnNextText">Berikutnya</span> <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MODE 3: FULL VOCABULARY GLOSSARY LIST -->
+                    <div id="vocabView" class="hidden flex-col flex-grow gap-3">
+                        <div class="flex items-center justify-between text-xs sm:text-sm text-slate-400 border-b border-slate-800 pb-2">
+                            <span>Daftar Kosakata Unit 1 JLPT N5</span>
+                            <span class="text-indigo-400 font-bold">43 Kata</span>
+                        </div>
+                        <div id="vocabFullList" class="max-h-[320px] sm:max-h-[380px] overflow-y-auto pr-1 space-y-2">
+                            <!-- Filled dynamically by JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- CONTROL PANEL & GAME STATS 
+                 (Alongside simulation in Landscape/Desktop, and below in Portrait/Mobile) 
+            -->
+            <aside class="lg:col-span-4 w-full flex flex-col gap-4">
+                
+                <!-- Performance Scorecard -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl backdrop-blur-xl">
+                    <h3 id="statsTitle" class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-indigo-400"></i> Performance & Skor
+                    </h3>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <!-- Current Score -->
+                        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 flex flex-col">
+                            <span class="text-[11px] text-slate-400 font-semibold" id="labelScore">Skor Saat Ini</span>
+                            <span id="scoreVal" class="text-2xl sm:text-3xl font-black text-indigo-400 mt-1">0</span>
+                        </div>
+                        <!-- High Score -->
+                        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 flex flex-col">
+                            <span class="text-[11px] text-slate-400 font-semibold" id="labelHighScore">Skor Tertinggi</span>
+                            <span id="highScoreVal" class="text-2xl sm:text-3xl font-black text-amber-400 mt-1">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Timer Bar -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span id="labelTimer" class="text-slate-400">Waktu Waktu</span>
+                            <span id="timerText" class="text-emerald-400 font-mono">00:00</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                            <div id="timerBar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full w-full transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl backdrop-blur-xl flex flex-col gap-3">
+                    <h3 id="controlsTitle" class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-indigo-400"></i> Kontrol Simulator
+                    </h3>
+
+                    <!-- Large Touch Buttons for Mobile -->
+                    <button onclick="resetCurrentGame()" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span id="btnResetText">Mulai Ulang Game</span>
+                    </button>
+
+                    <button onclick="openDevModal()" class="w-full py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs sm:text-sm active:scale-[0.98] transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-graduate text-rose-400"></i>
+                        <span id="btnDevText">Pengembang / 開発者</span>
+                    </button>
+                </div>
+
+            </aside>
+        </div>
+
+    </main>
+
+    <!-- DEVELOPER INFO MODAL (POP-UP) -->
+    <div id="devModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-800 max-w-md w-full rounded-3xl p-6 sm:p-8 shadow-2xl transform scale-95 transition-transform duration-300 id-modal-box">
+            
+            <div class="text-center">
+                <!-- Developer Avatar -->
+                <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-rose-500 p-1 mx-auto mb-4 shadow-xl shadow-indigo-500/20">
+                    <div class="w-full h-full rounded-full bg-slate-950 flex items-center justify-center text-3xl text-indigo-400">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                </div>
+
+                <span class="text-xs font-extrabold uppercase tracking-widest text-indigo-400" id="devModalSubtitle">Pengembang Aplikasi Game</span>
+                
+                <!-- Developer Name -->
+                <h2 class="text-2xl font-black text-white my-1" id="devName">Amriadi Djunaidi, S.Pd.</h2>
+                
+                <p class="text-xs text-slate-400 my-3 leading-relaxed" id="devDesc">
+                    Aplikasi game pembelajaran interaktif materi Bahasa Jepang JLPT N5 (Kanji, Cara Baca & Arti) berbasis web responsif modern.
+                </p>
+
+                <div class="bg-slate-950 rounded-2xl p-3 my-4 border border-slate-800 text-left text-xs space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500" id="devLabelMaterial">Materi:</span>
+                        <span class="text-slate-300 font-semibold">Unit 1 N5 語彙 の漢字</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500" id="devLabelTech">Teknologi:</span>
+                        <span class="text-slate-300 font-semibold">HTML5, Tailwind, Web Audio API</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500" id="devLabelStatus">Pengembang:</span>
+                        <span class="text-rose-400 font-bold">Amriadi Djunaidi, S.Pd.</span>
+                    </div>
+                </div>
+
+                <!-- Close Button -->
+                <button onclick="closeDevModal()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm transition shadow-lg shadow-indigo-600/30">
+                    <span id="btnCloseModal">Tutup</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="w-full py-4 px-4 bg-slate-950 border-t border-slate-900 text-center text-xs text-slate-500">
+        <p>© JLPT N5 Interactive Game. Developed by <span class="text-slate-300 font-semibold">Amriadi Djunaidi, S.Pd.</span></p>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           1. COMPLETE VOCABULARY DATASET (JLPT N5 - Unit 1)
+           ========================================================================== */
+        const vocabData = [
+            { id: 1, kanji: "わたし", reading: "わたし", meaning: "Saya" },
+            { id: 2, kanji: "わたくし", reading: "わたくし", meaning: "Saya (sopan)" },
+            { id: 3, kanji: "あなた", reading: "あなた", meaning: "Kamu" },
+            { id: 4, kanji: "彼", reading: "かれ", meaning: "Dia (laki-laki)" },
+            { id: 5, kanji: "彼女", reading: "かのじょ", meaning: "Dia (perempuan)" },
+            { id: 6, kanji: "お母さん", reading: "おかあさん", meaning: "Ibu (orang lain)" },
+            { id: 7, kanji: "母", reading: "はは", meaning: "Ibu (kandung)" },
+            { id: 8, kanji: "お父さん", reading: "おとうさん", meaning: "Ayah (orang lain)" },
+            { id: 9, kanji: "親", reading: "おや", meaning: "Orang tua" },
+            { id: 10, kanji: "両親", reading: "りょうしん", meaning: "Orang tua (kedua)" },
+            { id: 11, kanji: "お兄さん", reading: "おにいさん", meaning: "Kakak laki-laki (orang lain)" },
+            { id: 12, kanji: "兄", reading: "あに", meaning: "Kakak laki-laki (kandung)" },
+            { id: 13, kanji: "お姉さん", reading: "おねえさん", meaning: "Kakak perempuan (orang lain)" },
+            { id: 14, kanji: "姉", reading: "あね", meaning: "Kakak perempuan (kandung)" },
+            { id: 15, kanji: "弟", reading: "おとうと", meaning: "Adik laki-laki" },
+            { id: 16, kanji: "妹", reading: "いもうと", meaning: "Adik perempuan" },
+            { id: 17, kanji: "兄弟", reading: "きょうだい", meaning: "Saudara kandung" },
+            { id: 18, kanji: "子ども", reading: "こども", meaning: "Anak-anak" },
+            { id: 19, kanji: "赤ちゃん", reading: "あかちゃん", meaning: "Bayi" },
+            { id: 20, kanji: "男", reading: "おとこ", meaning: "Laki-laki" },
+            { id: 21, kanji: "女", reading: "おんな", meaning: "Perempuan" },
+            { id: 22, kanji: "男の子", reading: "おとこのこ", meaning: "Anak laki-laki" },
+            { id: 23, kanji: "女の子", reading: "おんなのこ", meaning: "Anak perempuan" },
+            { id: 24, kanji: "おじいさん", reading: "おじいさん", meaning: "Kakek" },
+            { id: 25, kanji: "おばあさん", reading: "おばあさん", meaning: "Nenek" },
+            { id: 26, kanji: "おじ（さん）", reading: "おじさん", meaning: "Paman" },
+            { id: 27, kanji: "おば（さん）", reading: "おばさん", meaning: "Bibi" },
+            { id: 28, kanji: "ペット", reading: "ペット", meaning: "Hewan peliharaan" },
+            { id: 29, kanji: "家族", reading: "かぞく", meaning: "Keluarga" },
+            { id: 30, kanji: "日本にいます", reading: "にほんにいます", meaning: "Ada di Jepang" },
+            { id: 31, kanji: "住みます", reading: "すみます", meaning: "Tinggal" },
+            { id: 32, kanji: "いっしょに", reading: "いっしょに", meaning: "Bersama" },
+            { id: 33, kanji: "彼は日本人です", reading: "かれはにほんじんです", meaning: "Dia orang Jepang" },
+            { id: 34, kanji: "国", reading: "くに", meaning: "Negara" },
+            { id: 35, kanji: "学校", reading: "がっこう", meaning: "Sekolah" },
+            { id: 36, kanji: "学生", reading: "がくせい", meaning: "Siswa" },
+            { id: 37, kanji: "先生", reading: "せんせい", meaning: "Guru" },
+            { id: 38, kanji: "会社", reading: "かいしゃ", meaning: "Perusahaan" },
+            { id: 39, kanji: "彼は会社員です", reading: "かれはかいしゃいんです", meaning: "Dia seorang karyawan" },
+            { id: 40, kanji: "彼は医者をしています", reading: "かれはいしゃをしています", meaning: "Dia bekerja sebagai dokter" },
+            { id: 41, kanji: "お年はおいくつですか", reading: "おとしはおいくつですか", meaning: "Berapa usianya?" },
+            { id: 42, kanji: "わたしは２１歳です", reading: "わたしは２１さいです", meaning: "Saya 21 tahun" },
+            { id: 43, kanji: "元気な", reading: "げんきな", meaning: "Sehat / Bugar" }
+        ];
+
+        /* ==========================================================================
+           2. BILINGUAL DICTIONARY (ID & JP)
+           ========================================================================== */
+        let currentLang = 'ID';
+
+        const i18n = {
+            ID: {
+                subtitle: "Aplikasi Game Pembelajaran Interaktif",
+                tabQuiz: "Kuis Pilihan",
+                tabCards: "Kartu Belajar",
+                tabVocab: "Daftar Materi",
+                quizHint: "Pilih Terjemahan yang Tepat",
+                cardHint: "Klik kartu untuk membalik",
+                cardFlip: "Sentuh untuk membalik",
+                btnPrev: "Sebelumnya",
+                btnNext: "Berikutnya",
+                statsTitle: "Performance & Skor",
+                labelScore: "Skor Saat Ini",
+                labelHighScore: "Skor Tertinggi",
+                labelTimer: "Waktu Berjalan",
+                controlsTitle: "Kontrol Simulator",
+                btnReset: "Mulai Ulang Game",
+                btnDev: "Pengembang / 開発者",
+                navDev: "Pengembang",
+                devSubtitle: "Pengembang Aplikasi Game",
+                devDesc: "Aplikasi game pembelajaran interaktif materi Bahasa Jepang JLPT N5 (Kanji, Cara Baca & Arti) berbasis web responsif modern.",
+                devMaterial: "Materi:",
+                devTech: "Teknologi:",
+                devStatus: "Pengembang:",
+                btnClose: "Tutup",
+                autoSpeech: "Auto Suara"
+            },
+            JP: {
+                subtitle: "対話型日本語学習ゲームアプリ",
+                tabQuiz: "選択クイズ",
+                tabCards: "単語カード",
+                tabVocab: "単語リスト",
+                quizHint: "正しい意味を選択してください",
+                cardHint: "カードをタップして裏返す",
+                cardFlip: "タップして裏返す",
+                btnPrev: "前へ",
+                btnNext: "次へ",
+                statsTitle: "成績＆スコア",
+                labelScore: "現在のスコア",
+                labelHighScore: "ハイスコア",
+                labelTimer: "経過時間",
+                controlsTitle: "コントロール",
+                btnReset: "ゲームリセット",
+                btnDev: "開発者情報",
+                navDev: "開発者",
+                devSubtitle: "ゲーム開発者",
+                devDesc: "JLPT N5レベルの漢字・読み方・意味を楽しく学べるレスポンシブWebゲームアプリケーションです。",
+                devMaterial: "教材:",
+                devTech: "技術:",
+                devStatus: "開発者:",
+                btnClose: "閉じる",
+                autoSpeech: "自動音声"
+            }
+        };
+
+        /* ==========================================================================
+           3. ADVANCED TEXT-TO-SPEECH (DUAL ENGINE: NATIVE SYNTHESIS + FALLBACK)
+           ========================================================================== */
+        let activeAudio = null;
+
+        function speakText(text) {
+            // Stop existing playback
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+
+            showSpeakerAnimation(true);
+
+            // Attempt Native Web Speech API
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 0.85; // Clear natural rate
+
+                // Voice selection optimization
+                let voices = window.speechSynthesis.getVoices();
+                let jaVoice = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+                if (jaVoice) utterance.voice = jaVoice;
+
+                utterance.onend = () => showSpeakerAnimation(false);
+                utterance.onerror = () => speakFallbackOnline(text);
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                speakFallbackOnline(text);
+            }
+        }
+
+        // Online High-Quality Fallback TTS Engine
+        function speakFallbackOnline(text) {
+            try {
+                const encodedText = encodeURIComponent(text);
+                const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=ja&client=tw-ob`;
+                
+                activeAudio = new Audio(ttsUrl);
+                activeAudio.onended = () => showSpeakerAnimation(false);
+                activeAudio.onerror = () => showSpeakerAnimation(false);
+                activeAudio.play().catch(e => {
+                    console.log("Audio playback prevented or unsupported:", e);
+                    showSpeakerAnimation(false);
+                });
+            } catch (err) {
+                showSpeakerAnimation(false);
+            }
+        }
+
+        function showSpeakerAnimation(isPlaying) {
+            const icon = document.getElementById('quizSpeakerIcon');
+            const wave = document.getElementById('quizWaveAnim');
+            if (!icon || !wave) return;
+
+            if (isPlaying) {
+                icon.classList.add('hidden');
+                wave.classList.remove('hidden');
+                wave.classList.add('flex');
+            } else {
+                icon.classList.remove('hidden');
+                wave.classList.add('hidden');
+                wave.classList.remove('flex');
+            }
+        }
+
+        /* ==========================================================================
+           4. WEB AUDIO SYNTHESIZER (BGM & SFX)
+           ========================================================================== */
+        let audioCtx = null;
+        let isBgmOn = false;
+        let isSfxOn = true;
+        let isAutoSpeechOn = false;
+        let bgmInterval = null;
+
+        function unlockAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleAutoSpeech() {
+            isAutoSpeechOn = !isAutoSpeechOn;
+            const btn = document.getElementById('autoSpeechBtn');
+            const icon = document.getElementById('autoSpeechIcon');
+
+            if (isAutoSpeechOn) {
+                btn.classList.add('bg-indigo-600', 'text-white');
+                icon.classList.replace('text-slate-400', 'text-emerald-300');
+                if (currentQuizItem) speakText(currentQuizItem.kanji);
+            } else {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                icon.classList.replace('text-emerald-300', 'text-slate-400');
+            }
+        }
+
+        function playSFX(type) {
+            if (!isSfxOn) return;
+            unlockAudioContext();
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                // Bright Dual-Chime
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.15); // G5
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'wrong') {
+                // Low Buzz
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.setValueAtTime(110, now + 0.1);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'flip') {
+                // Gentle Click
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(450, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+        }
+
+        // BGM Melody Synthesizer
+        const bgmNotes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; // C D E G A C
+        
+        function toggleBGM() {
+            unlockAudioContext();
+            isBgmOn = !isBgmOn;
+            const btn = document.getElementById('bgmBtn');
+            const icon = document.getElementById('bgmIcon');
+
+            if (isBgmOn) {
+                btn.classList.add('bg-indigo-600', 'text-white');
+                icon.classList.replace('text-slate-400', 'text-amber-300');
+                startBGM();
+            } else {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                icon.classList.replace('text-amber-300', 'text-slate-400');
+                stopBGM();
+            }
+        }
+
+        function toggleSFX() {
+            isSfxOn = !isSfxOn;
+            const icon = document.getElementById('sfxIcon');
+            if (isSfxOn) {
+                icon.className = 'fa-solid fa-volume-high text-indigo-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+            }
+        }
+
+        function startBGM() {
+            if (bgmInterval) clearInterval(bgmInterval);
+            bgmInterval = setInterval(() => {
+                if (!isBgmOn || !audioCtx) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                const freq = bgmNotes[Math.floor(Math.random() * bgmNotes.length)];
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.7);
+            }, 650);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        /* ==========================================================================
+           5. GAME STATE & SYSTEM LOGIC
+           ========================================================================== */
+        let currentMode = 'quiz';
+        let score = 0;
+        let highScore = localStorage.getItem('jlpt_n5_highscore') || 0;
+        let streak = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+
+        let currentQuizItem = null;
+        let quizQuestionCount = 0;
+
+        let currentCardIndex = 0;
+        let isCardFlipped = false;
+
+        window.onload = function() {
+            document.getElementById('highScoreVal').innerText = highScore;
+            renderFullVocabList();
+            startTimer();
+            switchMode('quiz');
+            applyLanguage();
+        };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerSeconds = 0;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('timerText').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function updateScore(points) {
+            score += points;
+            if (score < 0) score = 0;
+            document.getElementById('scoreVal').innerText = score;
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('jlpt_n5_highscore', highScore);
+                document.getElementById('highScoreVal').innerText = highScore;
+            }
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            playSFX('flip');
+
+            // Hide views
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('quizView').classList.remove('flex');
+            document.getElementById('cardsView').classList.add('hidden');
+            document.getElementById('cardsView').classList.remove('flex');
+            document.getElementById('vocabView').classList.add('hidden');
+            document.getElementById('vocabView').classList.remove('flex');
+
+            // Reset tab highlights
+            ['tabQuiz', 'tabCards', 'tabVocab'].forEach(id => {
+                const el = document.getElementById(id);
+                el.className = "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200";
+            });
+
+            if (mode === 'quiz') {
+                document.getElementById('quizView').classList.remove('hidden');
+                document.getElementById('quizView').classList.add('flex');
+                document.getElementById('tabQuiz').className = "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-md";
+                nextQuizQuestion();
+            } else if (mode === 'cards') {
+                document.getElementById('cardsView').classList.remove('hidden');
+                document.getElementById('cardsView').classList.add('flex');
+                document.getElementById('tabCards').className = "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-md";
+                updateFlashcard();
+            } else if (mode === 'vocab') {
+                document.getElementById('vocabView').classList.remove('hidden');
+                document.getElementById('vocabView').classList.add('flex');
+                document.getElementById('tabVocab').className = "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-md";
+            }
+        }
+
+        /* --- MODE 1: QUIZ --- */
+        function nextQuizQuestion() {
+            quizQuestionCount++;
+            document.getElementById('quizQuestionCount').innerText = `Soal ${quizQuestionCount}/${vocabData.length}`;
+            
+            currentQuizItem = vocabData[Math.floor(Math.random() * vocabData.length)];
+            
+            document.getElementById('quizQuestionText').innerText = currentQuizItem.kanji;
+            document.getElementById('quizSubDetail').innerText = (currentQuizItem.kanji !== currentQuizItem.reading) ? `(${currentQuizItem.reading})` : '';
+
+            if (isAutoSpeechOn) {
+                setTimeout(() => speakText(currentQuizItem.kanji), 200);
+            }
+
+            // Distractors
+            let options = [currentQuizItem];
+            while (options.length < 4) {
+                let rand = vocabData[Math.floor(Math.random() * vocabData.length)];
+                if (!options.find(o => o.id === rand.id)) {
+                    options.push(rand);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const grid = document.getElementById('quizOptionsGrid');
+            grid.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "py-3.5 px-4 rounded-2xl bg-slate-800/80 hover:bg-indigo-600/80 hover:border-indigo-400 border border-slate-700/80 text-slate-100 font-semibold text-xs sm:text-sm active:scale-95 transition flex items-center justify-center text-center shadow-md min-h-[52px]";
+                btn.innerText = opt.meaning;
+                btn.onclick = () => handleQuizAnswer(opt.id, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function speakCurrentQuestion() {
+            if (currentQuizItem) {
+                speakText(currentQuizItem.kanji);
+            }
+        }
+
+        function handleQuizAnswer(selectedId, btnElement) {
+            if (selectedId === currentQuizItem.id) {
+                playSFX('correct');
+                btnElement.className = "py-3.5 px-4 rounded-2xl bg-emerald-600 border border-emerald-400 text-white font-bold text-xs sm:text-sm shadow-md min-h-[52px]";
+                streak++;
+                updateScore(10 + (streak * 2));
+                document.getElementById('quizStreak').innerText = streak;
+
+                speakText(currentQuizItem.kanji);
+                setTimeout(nextQuizQuestion, 1000);
+            } else {
+                playSFX('wrong');
+                btnElement.className = "py-3.5 px-4 rounded-2xl bg-rose-600 border border-rose-400 text-white font-bold text-xs sm:text-sm shadow-md min-h-[52px]";
+                streak = 0;
+                document.getElementById('quizStreak').innerText = streak;
+                updateScore(-5);
+            }
+        }
+
+        /* --- MODE 2: FLASHCARDS --- */
+        function updateFlashcard() {
+            const item = vocabData[currentCardIndex];
+            document.getElementById('cardCounterText').innerText = `Kartu ${currentCardIndex + 1} / ${vocabData.length}`;
+            document.getElementById('cardFrontText').innerText = item.kanji;
+            document.getElementById('cardFrontFurigana').innerText = (item.kanji !== item.reading) ? `(${item.reading})` : '';
+            document.getElementById('cardBackText').innerText = item.meaning;
+
+            isCardFlipped = false;
+            document.getElementById('cardInner').style.transform = 'rotateY(0deg)';
+
+            if (isAutoSpeechOn) {
+                setTimeout(() => speakText(item.kanji), 200);
+            }
+        }
+
+        function speakCurrentCard() {
+            const item = vocabData[currentCardIndex];
+            speakText(item.kanji);
+        }
+
+        function flipCard() {
+            playSFX('flip');
+            isCardFlipped = !isCardFlipped;
+            const inner = document.getElementById('cardInner');
+            inner.style.transform = isCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        }
+
+        function nextCard() {
+            currentCardIndex = (currentCardIndex + 1) % vocabData.length;
+            updateFlashcard();
+        }
+
+        function prevCard() {
+            currentCardIndex = (currentCardIndex - 1 + vocabData.length) % vocabData.length;
+            updateFlashcard();
+        }
+
+        /* --- MODE 3: GLOSSARY LIST --- */
+        function renderFullVocabList() {
+            const list = document.getElementById('vocabFullList');
+            list.innerHTML = '';
+            vocabData.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between bg-slate-950 p-3 rounded-2xl border border-slate-800 hover:border-slate-700 transition gap-3";
+                row.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <button onclick="speakText('${item.kanji}')" class="w-9 h-9 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white flex items-center justify-center text-sm shrink-0 border border-indigo-400/30 shadow-md" title="Putar Suara">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                        <div>
+                            <span class="font-jp font-bold text-white text-base">${item.kanji}</span>
+                            <span class="text-indigo-400 text-xs font-jp ml-1">${item.kanji !== item.reading ? `(${item.reading})` : ''}</span>
+                        </div>
+                    </div>
+                    <span class="text-xs sm:text-sm text-slate-300 font-semibold text-right">${item.meaning}</span>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        /* ==========================================================================
+           6. UTILITIES, LANGUAGE & FULLSCREEN CONTROLS
+           ========================================================================== */
+        function resetCurrentGame() {
+            score = 0;
+            streak = 0;
+            updateScore(0);
+            startTimer();
+            if (currentMode === 'quiz') nextQuizQuestion();
+            else updateFlashcard();
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ID' ? 'JP' : 'ID';
+            document.getElementById('langLabel').innerText = currentLang === 'ID' ? 'ID / JP' : 'JP / ID';
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            const lang = i18n[currentLang];
+            document.getElementById('appSubtitle').innerText = lang.subtitle;
+            document.querySelector('.mode-text-quiz').innerText = lang.tabQuiz;
+            document.querySelector('.mode-text-cards').innerText = lang.tabCards;
+            document.querySelector('.mode-text-vocab').innerText = lang.tabVocab;
+            document.getElementById('quizHintText').innerText = lang.quizHint;
+            document.getElementById('cardHintText').innerText = lang.cardHint;
+            document.querySelectorAll('.card-click-flip').forEach(el => el.innerText = lang.cardFlip);
+            document.getElementById('btnPrevText').innerText = lang.btnPrev;
+            document.getElementById('btnNextText').innerText = lang.btnNext;
+            document.getElementById('statsTitle').innerHTML = `<i class="fa-solid fa-chart-line text-indigo-400"></i> ${lang.statsTitle}`;
+            document.getElementById('labelScore').innerText = lang.labelScore;
+            document.getElementById('labelHighScore').innerText = lang.labelHighScore;
+            document.getElementById('labelTimer').innerText = lang.labelTimer;
+            document.getElementById('controlsTitle').innerHTML = `<i class="fa-solid fa-gamepad text-indigo-400"></i> ${lang.controlsTitle}`;
+            document.getElementById('btnResetText').innerText = lang.btnReset;
+            document.getElementById('btnDevText').innerText = lang.btnDev;
+            document.getElementById('navDevText').innerText = lang.navDev;
+            document.getElementById('devModalSubtitle').innerText = lang.devSubtitle;
+            document.getElementById('devDesc').innerText = lang.devDesc;
+            document.getElementById('devLabelMaterial').innerText = lang.devMaterial;
+            document.getElementById('devLabelTech').innerText = lang.devTech;
+            document.getElementById('devLabelStatus').innerText = lang.devStatus;
+            document.getElementById('btnCloseModal').innerText = lang.btnClose;
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+                document.getElementById('fsIcon').className = 'fa-solid fa-compress';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                document.getElementById('fsIcon').className = 'fa-solid fa-expand';
+            }
+        }
+
+        function openDevModal() {
+            playSFX('flip');
+            const modal = document.getElementById('devModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.id-modal-box').classList.remove('scale-95');
+            modal.querySelector('.id-modal-box').classList.add('scale-100');
+        }
+
+        function closeDevModal() {
+            playSFX('flip');
+            const modal = document.getElementById('devModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.querySelector('.id-modal-box').classList.remove('scale-100');
+            modal.querySelector('.id-modal-box').classList.add('scale-95');
+        }
+    </script>
+</body>
+</html>
